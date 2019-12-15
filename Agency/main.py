@@ -2,7 +2,7 @@ import socket
 
 
 # ########################################### CONSTANTS
-HOSTNAME = socket.gethostname()
+HOSTNAME = "localhost"
 PORT = 80
 
 
@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
         # While a connection is established...
         while True:
-            data = connection.recv(4096)
+            data = connection.recv(4096).decode("utf8")
             # If there is no data, exit the loop...
             if not data:
                 break
@@ -29,7 +29,7 @@ if __name__ == "__main__":
             print(customer_data)
 
             # And, send a response back to the customer...
-            connection.send("Welcome customer!")
+            connection.send(bytes('Some text', encoding="utf8"))
 
         # Close the connection...
         connection.close()
