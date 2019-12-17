@@ -117,8 +117,8 @@ function postForm(event){
     // Send form informations to back-end.
     $.post('/', data, function(resp) {
         
-        // var key = 'response' + index;
-        // backend_responses[key] = resp;
+        var key = 'response' + index;
+        backend_responses[key] = resp;
     });
 }
 
@@ -158,6 +158,12 @@ function check_response(index){
         // Check each second if it set...
         setTimeout(check_response_interval, 1000, index, key, 1, responseTimer);
     }
+
+    if(response !== undefined)
+        // Fade off animation.
+        $('.customer-div-' + index).fadeOut("slow", function(){
+            response_arrived(index);
+        });
 }
 
 function check_response_interval(index, key, number_of_tries, interval_id){
@@ -169,7 +175,10 @@ function check_response_interval(index, key, number_of_tries, interval_id){
 
         // It is set.
         clearInterval(interval_id);
-        alert("It is set");
+        // Fade off animation.
+        $('.customer-div-' + index).fadeOut("slow", function(){
+            response_arrived(index);
+        });
     }else{
 
         // It couldn't be set.
@@ -185,12 +194,8 @@ function check_response_interval(index, key, number_of_tries, interval_id){
 }
 
 function no_response(index){
-    // Firstly, we will set centerized_div to customer-div.
-    $('.customer-div-' + index).html(centerized_div);
-
-    // Next, we will give it a unique id.
-    $('.centerized').attr('id', 'centerized' + index);
-    $('.centerized').removeClass('centerized');
+    // Firstly, we will need to delete everything inside the div.
+    $('#centerized' + index).empty();
 
     // Then, we will append no response heading and text to this div.
     $('#centerized' + index).append(no_response_heading);
@@ -200,17 +205,14 @@ function no_response(index){
     $('.customer-div-' + index).fadeIn("slow");
 }
 
-function loading_result_transition(index, response){
+function response_arrived(index, response){
+    // Firstly, we will need to delete everything inside the div.
+    $('#centerized' + index).empty();
 
-    // After fading out loading screen, we will fade in results screen.
-    $('.customer-info').fadeOut("slow", () => {
-        $('.customer-info').html(success_heading);
-        $('.success').append(success_text);
-        // Then, we will fade it in...
-        $('.customer-info').fadeIn("slow", bring_results);
-    });
-}
+    // Then, we will append success heading and text to this div.
+    $('#centerized' + index).append(success_heading);
+    $('#centerized' + index).append(success_text);
 
-function bring_results(){
-
+    // Then, we will fade it in...
+    $('.customer-div-' + index).fadeIn("slow");
 }
