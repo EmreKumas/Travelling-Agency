@@ -22,7 +22,7 @@ var no_response_text = '<p class="text-justify">We tried to connect to our backe
 
 var success_heading = '<h2 class="text-uppercase">CONGRATULATIONS...</h2></div>';
 var success_text = '<p class="text-justify">We have arranged your hotel and airline tickets as you have preferred. All other details and payment information is sent to your e-mail that you have provided.</p>';
-var success_informations = '<div class="info-div"><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline underline">Name:</label></div><div class="col text-left"><label class="col-form-label d-inline info-name">Name</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline underline">E-mail:</label></div><div class="col text-left"><label class="col-form-label d-inline info-mail">E-mail</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline underline">Hotel:</label></div><div class="col text-left"><label class="col-form-label d-inline info-hotel">Hotel</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline underline">Airline:</label></div><div class="col text-left"><label class="col-form-label d-inline info-airline">Airline</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline underline">Start Date:</label></div><div class="col text-left"><label class="col-form-label d-inline info-start">Start Date</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline underline">End Date:</label></div><div class="col text-left"><label class="col-form-label d-inline info-end">End Date</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline underline">Vacationers:</label></div><div class="col text-left"><label class="col-form-label d-inline info-vacationers">Vacationers</label></div></div></div>';
+var success_informations = '<div class="info-div"><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Name:</label></div><div class="col text-left"><label class="col-form-label d-inline info-name">Name</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">E-mail:</label></div><div class="col text-left"><label class="col-form-label d-inline info-mail">E-mail</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Hotel:</label></div><div class="col text-left"><label class="col-form-label d-inline info-hotel">Hotel</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Airline:</label></div><div class="col text-left"><label class="col-form-label d-inline info-airline">Airline</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Start Date:</label></div><div class="col text-left"><label class="col-form-label d-inline info-start">Start Date</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">End Date:</label></div><div class="col text-left"><label class="col-form-label d-inline info-end">End Date</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Vacationers:</label></div><div class="col text-left"><label class="col-form-label d-inline info-vacationers">Vacationers</label></div></div></div>';
 
 function ready_variables(){
     
@@ -163,7 +163,7 @@ function check_response(index){
     if(response !== undefined)
         // Fade off animation.
         $('.customer-div-' + index).fadeOut("slow", function(){
-            response_arrived(index);
+            response_arrived(index, response);
         });
 }
 
@@ -178,7 +178,7 @@ function check_response_interval(index, key, number_of_tries, interval_id){
         clearInterval(interval_id);
         // Fade off animation.
         $('.customer-div-' + index).fadeOut("slow", function(){
-            response_arrived(index);
+            response_arrived(index, response);
         });
     }else{
 
@@ -231,6 +231,16 @@ function response_arrived(index, response){
     $('.info-vacationers').attr('id', 'info-vacationers-' + index);
     $('.info-vacationers').removeClass('info-vacationers');
 
+    // Set informations based on response.
+    $('#info-name-' + index).text(response['name']);
+    $('#info-mail-' + index).text(response['mail']);
+    $('#info-hotel-' + index).text(response['hotel']);
+    $('#info-airline-' + index).text(response['airline']);
+    $('#info-start-' + index).text(response['start_date']);
+    $('#info-end-' + index).text(response['end_date']);
+    $('#info-vacationers-' + index).text(response['vacationers']);
+
     // Then, we will fade it in...
     $('.customer-div-' + index).fadeIn("slow");
 }
+

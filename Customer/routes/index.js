@@ -4,8 +4,7 @@ const router = express.Router();
 
 // All GET and POST requests are handled here...
 router.post('/', (req, res) => {
-    console.log(req.body);
-    res.send("CEVAP");
+    res.send(req.body);
 });
 
 module.exports = router;
