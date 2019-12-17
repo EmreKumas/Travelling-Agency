@@ -17,6 +17,9 @@ var centerized_div = '<div class="centerized" style="position: relative; top: 50
 var loading_image_html = '<img src="assets/img/ajax-loader.gif">';
 var loading_text_html = '<h6 class="mt-3 text-monospace">Please wait while we check.</h6>';
 
+var no_response_heading = '<h2 class="text-uppercase">no response...</h2>';
+var no_response_text = '<p class="text-justify">We tried to connect to our backend but couldn\'t get a response. Please try again after 1-3 minutes...</p>';
+
 var success_heading = '<h2 class="text-uppercase">CONGRATULATIONS...</h2></div>';
 var success_text = '<p class="text-justify">We have arranged your hotel and airline tickets as you have preferred. All other details and payment information is sent to your e-mail that you have provided.</p>';
 
@@ -172,10 +175,29 @@ function check_response_interval(index, key, number_of_tries, interval_id){
         // It couldn't be set.
         if(number_of_tries >= 20){
             clearInterval(interval_id);
-            alert("It couldn't be set!");
+            // Fade off animation.
+            $('.customer-div-' + index).fadeOut("slow", function(){
+                no_response(index);
+            });
         }else
             setTimeout(check_response_interval, 1000, index, key, number_of_tries + 1, interval_id);
     }
+}
+
+function no_response(index){
+    // Firstly, we will set centerized_div to customer-div.
+    $('.customer-div-' + index).html(centerized_div);
+
+    // Next, we will give it a unique id.
+    $('.centerized').attr('id', 'centerized' + index);
+    $('.centerized').removeClass('centerized');
+
+    // Then, we will append no response heading and text to this div.
+    $('#centerized' + index).append(no_response_heading);
+    $('#centerized' + index).append(no_response_text);
+
+    // Then, we will fade it in...
+    $('.customer-div-' + index).fadeIn("slow");
 }
 
 function loading_result_transition(index, response){
