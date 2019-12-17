@@ -9,6 +9,7 @@ var customer_div = null;
 var add_new_customer = null;
 var div_height = 0;
 var customer_count = 1;
+var backend_responses = {};
 
 // HTML holders...
 var centerized_div = '<div class="centerized" style="position: relative; top: 50%; transform: translateY(-50%);"></div>';
@@ -112,7 +113,9 @@ function postForm(event){
 
     // Send form informations to back-end.
     $.post('/', data, function(resp) {
-        //alert(resp);
+        
+        // var key = 'response' + index;
+        // backend_responses[key] = resp;
     });
 }
 
@@ -132,11 +135,51 @@ function bring_loading(index){
     // Then, we will fade it in...
     $('.customer-div-' + index).fadeIn("slow");
 
-    // Lets wait for 3 seconds and show the results.
-    // setTimeout(loading_result_transition, 3000);
+    // Lets wait for at least 3 seconds and show the results.
+    setTimeout(check_response, 3000, index);
 }
 
-function loading_result_transition(){
+function check_response(index){
+
+    // If after 3 seconds the response from backend has not been arrived, we will wait until the response arrive.
+    var key = 'response' + index;
+    var response = backend_responses[key];
+
+    if(response === undefined){
+        
+        // Try to set response variable every second...
+        let responseTimer = setInterval(() => {
+            response = backend_responses[key];
+        }, 1000);
+
+        // Check each second if it set...
+        setTimeout(check_response_interval, 1000, index, key, 1, responseTimer);
+    }
+}
+
+function check_response_interval(index, key, number_of_tries, interval_id){
+
+    // Finish looking if the time has passed so much like 20 sec...
+    var response = backend_responses[key];
+
+    if(response !== undefined){
+
+        // It is set.
+        clearInterval(interval_id);
+        alert("It is set");
+    }else{
+
+        // It couldn't be set.
+        if(number_of_tries >= 20){
+            clearInterval(interval_id);
+            alert("It couldn't be set!");
+        }else
+            setTimeout(check_response_interval, 1000, index, key, number_of_tries + 1, interval_id);
+    }
+}
+
+function loading_result_transition(index, response){
+
     // After fading out loading screen, we will fade in results screen.
     $('.customer-info').fadeOut("slow", () => {
         $('.customer-info').html(success_heading);
