@@ -11,7 +11,7 @@ body {
   box-shadow: 0 0 0 .15rem rgba(0,0,0,0.25);
 }
 
-.global-container .row {
+.global-container .customer-row {
   margin-top: 100px;
   margin-bottom: 100px;
 }
@@ -49,3 +49,10 @@ a:hover {
   text-decoration: none;
 }
 
+.row.info-row {
+  margin-top: 5px;
+}
+
+.info-div {
+  margin-top: 40px;
+}

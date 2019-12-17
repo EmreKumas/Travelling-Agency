@@ -22,6 +22,7 @@ var no_response_text = '<p class="text-justify">We tried to connect to our backe
 
 var success_heading = '<h2 class="text-uppercase">CONGRATULATIONS...</h2></div>';
 var success_text = '<p class="text-justify">We have arranged your hotel and airline tickets as you have preferred. All other details and payment information is sent to your e-mail that you have provided.</p>';
+var success_informations = '<div class="info-div"><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline">Name:</label></div><div class="col text-left"><label class="col-form-label d-inline info-name">Name</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline">E-mail:</label></div><div class="col text-left"><label class="col-form-label d-inline info-mail">E-mail</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline">Hotel:</label></div><div class="col text-left"><label class="col-form-label d-inline info-hotel">Hotel</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline">Airline:</label></div><div class="col text-left"><label class="col-form-label d-inline info-airline">Airline</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline">Start Date:</label></div><div class="col text-left"><label class="col-form-label d-inline info-start">Start Date</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline">End Date:</label></div><div class="col text-left"><label class="col-form-label d-inline info-end">End Date</label></div></div><div class="row info-row"><div class="col-3 text-left"><label class="col-form-label d-inline">Vacationers:</label></div><div class="col text-left"><label class="col-form-label d-inline info-vacationers">Vacationers</label></div></div></div>';
 
 function ready_variables(){
     
@@ -63,7 +64,7 @@ function insert_customer(){
 function new_customer_added(){
     
     // Let's add a new block for the users to be able to add new customers.
-    var current_row_div = '<div class="row current-row">';
+    var current_row_div = '<div class="row customer-row current-row">';
     var col_five_div = '<div class="col-5 text-center align-self-center add-here">';
     var col_two_div = '<div class="col-2">';
     
@@ -212,6 +213,23 @@ function response_arrived(index, response){
     // Then, we will append success heading and text to this div.
     $('#centerized' + index).append(success_heading);
     $('#centerized' + index).append(success_text);
+    $('#centerized' + index).append(success_informations);
+
+    // After appending success_informations, we need to set unique ids to each element.
+    $('.info-name').attr('id', 'info-name-' + index);
+    $('.info-name').removeClass('info-name');
+    $('.info-mail').attr('id', 'info-mail-' + index);
+    $('.info-mail').removeClass('info-mail');
+    $('.info-hotel').attr('id', 'info-hotel-' + index);
+    $('.info-hotel').removeClass('info-hotel');
+    $('.info-airline').attr('id', 'info-airline-' + index);
+    $('.info-airline').removeClass('info-airline');
+    $('.info-start').attr('id', 'info-start-' + index);
+    $('.info-start').removeClass('info-start');
+    $('.info-end').attr('id', 'info-end-' + index);
+    $('.info-end').removeClass('info-end');
+    $('.info-vacationers').attr('id', 'info-vacationers-' + index);
+    $('.info-vacationers').removeClass('info-vacationers');
 
     // Then, we will fade it in...
     $('.customer-div-' + index).fadeIn("slow");
