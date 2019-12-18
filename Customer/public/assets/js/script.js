@@ -1,7 +1,9 @@
 $(document).ready(function(){
     ready_variables();
     $(document).on('click', '.add-customer-button', insert_customer);
-    $(document).on('click', '.find-vacation', postForm);
+    $(document).on('click', '.find-vacation', post_form);
+    $(document).on('click', '.alternate-accept', accept_alternative);
+    $(document).on('click', '.alternate-refuse', refuse_alternative);
 });
 
 // Variables...
@@ -20,9 +22,17 @@ var loading_text_html = '<h6 class="mt-3 text-monospace">Please wait while we ch
 var no_response_heading = '<h2 class="text-uppercase">no response...</h2>';
 var no_response_text = '<p class="text-justify">We tried to connect to our backend but couldn\'t get a response. Please try again after 1-3 minutes...</p>';
 
+var fail_heading = '<h2 class="text-uppercase">NO RESERVATION IS AVAILABLE...</h2>';
+var fail_text = '<p class="text-justify">We checked all available hotels and airlines, it seems like there is no suitable place for the time interval you have selected. You can try to change start and end dates and check if these dates are available for your preferred hotel and airline.</p>';
+
 var success_heading = '<h2 class="text-uppercase">CONGRATULATIONS...</h2></div>';
 var success_text = '<p class="text-justify">We have arranged your hotel and airline tickets as you have preferred. All other details and payment information is sent to your e-mail that you have provided.</p>';
 var success_informations = '<div class="info-div"><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Name:</label></div><div class="col text-left"><label class="col-form-label d-inline info-name">Name</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">E-mail:</label></div><div class="col text-left"><label class="col-form-label d-inline info-mail">E-mail</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Hotel:</label></div><div class="col text-left"><label class="col-form-label d-inline info-hotel">Hotel</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Airline:</label></div><div class="col text-left"><label class="col-form-label d-inline info-airline">Airline</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Start Date:</label></div><div class="col text-left"><label class="col-form-label d-inline info-start">Start Date</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">End Date:</label></div><div class="col text-left"><label class="col-form-label d-inline info-end">End Date</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Vacationers:</label></div><div class="col text-left"><label class="col-form-label d-inline info-vacationers">Vacationers</label></div></div></div>';
+
+var alternate_heading = '<h2 class="text-uppercase">NO RESERVATION IS AVAILABLE...</h2>';
+var alternate_text = '<p class="text-justify">We checked your preferred hotel and airline, it seems like there is no suitable place for the time interval you have selected. But we have an alternative option for you. If you agree, we will reserve with these options. If you disagree, we will try to give you some other alternatives.</p>';
+var alternate_hotel_airline_div = '<div class="info-div"><div class="row info-row"><div class="col-sm-3 col-2 text-left"><label class="col-form-label d-inline underline">Hotel:</label></div><div class="col text-left"><label class="col-form-label d-inline alternate-hotel">Hotel</label></div></div><div class="row info-row"><div class="col-sm-3 col-2 text-left"><label class="col-form-label d-inline underline">Airline:</label></div><div class="col text-left"><label class="col-form-label d-inline alternate-airline">Airline</label></div></div></div>';
+var alternate_buttons = '<div class="row" id="accept-refuse-div"><div class="col-auto text-right align-self-center"><button id="alternate-accept-1" class="btn btn-dark alternate-accept" type="button">Accept</button></div><div class="col text-left align-self-center"><button id="alternate-refuse-1" class="btn btn-outline-danger alternate-refuse" type="button">Refuse</button></div></div>';
 
 function ready_variables(){
     
@@ -88,7 +98,7 @@ function new_customer_added(){
     }
 }
 
-function postForm(event){
+function post_form(event){
     // Prevent the page from reloading...
     event.preventDefault();
 
@@ -207,6 +217,17 @@ function no_response(index){
 }
 
 function response_arrived(index, response){
+
+    // After response arrives, we will check if it is a success.
+    if(response['reserved'] === 'reserved')
+        success_screen(index, response);
+    else if(response['reserved'] === 'alternate')
+        alternate_screen(index, response);
+    else
+        fail_screen(index);
+}
+
+function success_screen(index, response){
     // Firstly, we will need to delete everything inside the div.
     $('#centerized' + index).empty();
 
@@ -244,3 +265,81 @@ function response_arrived(index, response){
     $('.customer-div-' + index).fadeIn("slow");
 }
 
+function alternate_screen(index, response){
+    // Firstly, we will need to delete everything inside the div.
+    var div_id = "#centerized" + index;
+    $(div_id).empty();
+
+    // Then, we will append alternate heading and text to this div.
+    $(div_id).append(alternate_heading);
+    $(div_id).append(alternate_text);
+    $(div_id).append(alternate_hotel_airline_div);
+    $(div_id).append(alternate_buttons);
+
+    // After appending alternate screen, we need to set unique ids to each element.
+    $('.alternate-hotel').attr('id', 'alternate-hotel-' + index);
+    $('.alternate-hotel').removeClass('alternate-hotel');
+    $('.alternate-airline').attr('id', 'alternate-airline-' + index);
+    $('.alternate-airline').removeClass('alternate-airline');
+    $(div_id + ' .alternate-accept').attr('id', 'alternate-accept-' + index);
+    $(div_id + ' .alternate-refuse').attr('id', 'alternate-refuse-' + index);
+
+    // Set informations based on response.
+    $('#alternate-hotel-' + index).text(response['hotel']);
+    $('#alternate-airline-' + index).text(response['airline']);
+
+    // Then, we will fade it in...
+    $('.customer-div-' + index).fadeIn("slow");
+}
+
+function fail_screen(index){
+    // Firstly, we will need to delete everything inside the div.
+    $('#centerized' + index).empty();
+
+    // Then, we will append fail heading and text to this div.
+    $('#centerized' + index).append(fail_heading);
+    $('#centerized' + index).append(fail_text);
+
+    // Then, we will fade it in...
+    $('.customer-div-' + index).fadeIn("slow");
+}
+
+function accept_alternative(){
+    var index = parseInt(this.id.replace("alternate-accept-", ""));
+    var key = 'response' + index;
+
+    // Fade off animation of form.
+    $('.customer-div-' + index).fadeOut("slow", function(){
+        bring_loading(index);
+    });
+
+    var data = backend_responses[key];
+    data['accept_refuse'] = 'accept';
+
+    // Send form informations to back-end.
+    $.post('/', data, function(resp) {
+        
+        var key = 'response' + index;
+        backend_responses[key] = resp;
+    });
+}
+
+function refuse_alternative(){
+    var index = parseInt(this.id.replace("alternate-refuse-", ""));
+    var key = 'response' + index;
+
+    // Fade off animation of form.
+    $('.customer-div-' + index).fadeOut("slow", function(){
+        bring_loading(index);
+    });
+
+    var data = backend_responses[key];
+    data['accept_refuse'] = 'refuse';
+
+    // Send form informations to back-end.
+    $.post('/', data, function(resp) {
+        
+        var key = 'response' + index;
+        backend_responses[key] = resp;
+    });
+}
