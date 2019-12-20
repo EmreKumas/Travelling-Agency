@@ -7,9 +7,16 @@ class Customer{
 
     constructor(){
         this.customer = new net.Socket();
+        this.connected = true;
 
         // Create a connection once an object is initialized.
         this.customer.connect(PORT, HOSTNAME);
+
+        // Preventing back-end from collapsing if a connection cannot be established...
+        this.customer.on('error', _ => {
+            this.connected = false;
+            console.log("Couldn't connect to the backend!");
+        });
     }
 
     send_data(customer_data){

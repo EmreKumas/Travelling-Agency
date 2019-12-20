@@ -26,7 +26,7 @@ var fail_heading = '<h2 class="text-uppercase">NO RESERVATION IS AVAILABLE...</h
 var fail_text = '<p class="text-justify">We checked all available hotels and airlines, it seems like there is no suitable place for the time interval you have selected. You can try to change start and end dates and check if these dates are available for your preferred hotel and airline.</p>';
 
 var success_heading = '<h2 class="text-uppercase">CONGRATULATIONS...</h2></div>';
-var success_text = '<p class="text-justify">We have arranged your hotel and airline tickets as you have preferred. All other details and payment information is sent to your e-mail that you have provided.</p>';
+var success_text = '<p class="text-justify">We have reserved your hotel and airline as you have preferred. All other details and payment information is sent to your e-mail that you have provided.</p>';
 var success_informations = '<div class="info-div"><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Name:</label></div><div class="col text-left"><label class="col-form-label d-inline info-name">Name</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">E-mail:</label></div><div class="col text-left"><label class="col-form-label d-inline info-mail">E-mail</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Hotel:</label></div><div class="col text-left"><label class="col-form-label d-inline info-hotel">Hotel</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Airline:</label></div><div class="col text-left"><label class="col-form-label d-inline info-airline">Airline</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Start Date:</label></div><div class="col text-left"><label class="col-form-label d-inline info-start">Start Date</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">End Date:</label></div><div class="col text-left"><label class="col-form-label d-inline info-end">End Date</label></div></div><div class="row info-row"><div class="col-sm-4 col-3 text-left"><label class="col-form-label d-inline underline">Vacationers:</label></div><div class="col text-left"><label class="col-form-label d-inline info-vacationers">Vacationers</label></div></div></div>';
 
 var alternate_heading = '<h2 class="text-uppercase">NO RESERVATION IS AVAILABLE...</h2>';
@@ -149,8 +149,8 @@ function bring_loading(index){
     // Then, we will fade it in...
     $('.customer-div-' + index).fadeIn("slow");
 
-    // Lets wait for at least 3 seconds and show the results.
-    setTimeout(check_response, 3000, index);
+    // Lets wait for at least 2 seconds and show the results.
+    setTimeout(check_response, 2000, index);
 }
 
 function check_response(index){
@@ -193,7 +193,7 @@ function check_response_interval(index, key, number_of_tries, interval_id){
     }else{
 
         // It couldn't be set.
-        if(number_of_tries >= 20){
+        if(number_of_tries >= 10){
             clearInterval(interval_id);
             // Fade off animation.
             $('.customer-div-' + index).fadeOut("slow", function(){

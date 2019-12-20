@@ -7,12 +7,16 @@ const router = express.Router();
 router.post('/', (req, res) => {
 
     var customer = new Customer();
-    var server_response = customer.send_data(req.body);
+    
+    if(customer.connected){
+        var server_response = customer.send_data(req.body);
 
-    // After server response arrives...
-    server_response.then(response => {
-        res.send(response);
-    });
+        // After server response arrives...
+        server_response.then(response => {
+            res.send(response);
+        });
+    }else
+        res.send(null);
 });
 
 module.exports = router;
