@@ -19,39 +19,81 @@ key_value_normal_ending = "\r\n"
 
 
 # ########################################### FUNCTIONS
-# noinspection PyShadowingNames
-def process_customer_data(data):
-
-    customer_data = json.loads(data)
-
-    # Now, we need to contact with hotels and airlines.
-    contact_hotels()
-
-    # Add a reserved field to indicate if it is reserved or not.
-    customer_data['reserved'] = 'reserved'
-
-    return json.dumps(customer_data, ensure_ascii=False), customer_data['name']
-
-
-def contact_hotels():
+def contact_hotel(meaningful_data, reserve):
 
     # Lets create our request message...
-    body = []
+    body = create_body(meaningful_data, reserve)
 
-    request = headers.format('61') + body_starting
+    request = headers.format(calculate_body_size(body)) + body_starting
     for element in body:
         request += element
     request += body_ending
 
-    # Now, we need to connect to the hotel socket...
+    # Now, we need to connect to the hotel socket and send our request...
     hotel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    response = send_data_to_socket(hotel_socket, request)
+
+    # Processing response...
+    return process_data(response)
+
+
+def send_data_to_socket(target_socket, data):
+    response = ''
     try:
-        hotel_socket.connect((HOSTNAME, 9000))
-        hotel_socket.sendall(bytes(request, encoding="utf8"))
-        response = hotel_socket.recv(4096).decode("utf8")
-        hotel_socket.close()
+        target_socket.connect((HOSTNAME, 9000))
+        target_socket.sendall(bytes(data, encoding="utf8"))
+        response = target_socket.recv(4096).decode("utf8")
+        target_socket.close()
     except socket.error:
         print("Couldn't connect to the target hotel!")
+
+    return response
+
+
+def process_data(data):
+    # We need to get meaningful data...
+    reserved_status = None
+    for line in data.splitlines():
+        if "reserved" in line:
+            reserved_status = line[17:-1]
+
+    return reserved_status
+
+
+def create_body(customer_data, reserve):
+    body = [key_value.format('name', customer_data['name']) + key_value_comma_ending,
+            key_value.format('mail', customer_data['mail']) + key_value_comma_ending,
+            key_value.format('start_date', customer_data['start_date']) + key_value_comma_ending,
+            key_value.format('end_date', customer_data['end_date']) + key_value_comma_ending,
+            key_value.format('vacationers', customer_data['vacationers']) + key_value_comma_ending,
+            key_value.format('reserve', reserve) + key_value_normal_ending]
+
+    return body
+
+
+def calculate_body_size(body):
+    text = ''
+    for element in body:
+        text += element
+
+    # Plus 4 is to be on the safe-side, because header-lengths could be calculated as well...
+    length = len(text) + 4
+
+    # Also we need to add one more for each unicode character...
+    for element in body:
+        length += sum(element.count(x) for x in ("İ", "ı", "ğ", "Ğ", "ü", "Ü", "ş", "Ş", "ö", "Ö", "ç", "Ç"))
+
+    return length
+
+
+def create_response(meaningful_data, hotel_reserved_status):
+
+    if hotel_reserved_status == 'no_reservation':
+        meaningful_data['reserved'] = 'no_reservation'
+    else:
+        meaningful_data['reserved'] = 'reserved'
+
+    return json.dumps(meaningful_data, ensure_ascii=False)
 
 
 if __name__ == "__main__":
@@ -74,11 +116,24 @@ if __name__ == "__main__":
             if not customer_data:
                 break
 
-            # Process customer data...
-            customer_data, customer_name = process_customer_data(customer_data)
+            # Convert straight text into a dictionary...
+            meaningful_data = json.loads(customer_data)
+
+            # Set customer name...
+            customer_name = meaningful_data['name']
+
+            # Check if there is enough place in the hotel...
+            hotel_reserved_status = contact_hotel(meaningful_data, "false")
+
+            # Reserve places in the hotel if there is enough place...
+            if hotel_reserved_status == 'enough_place':
+                hotel_reserved_status = contact_hotel(meaningful_data, "true")
+
+            # Create our response message back to the customer...
+            response = create_response(meaningful_data, hotel_reserved_status)
 
             # And, send a response back to the customer...
-            connection.send(bytes(customer_data, encoding="utf8"))
+            connection.send(bytes(response, encoding="utf8"))
 
         # Close the connection...
         connection.close()
