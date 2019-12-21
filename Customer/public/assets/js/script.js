@@ -106,14 +106,18 @@ function post_form(event){
        And, then we will delete the customer keyword, so only the number will be left. */
     var index = parseInt(this.id.replace("submit", ""));
 
+    // Before posting form, we will convert dates into a number to be able to evaluate easier...
+    var start_date_converted = (new Date($('#start_date' + index).val())).getTime() / 1000;
+    var end_date_converted = (new Date($('#end_date' + index).val())).getTime() / 1000;
+
     // Getting form values.
     var data = {
         "name": $('#name' + index).val(),
         "mail": $('#mail' + index).val(),
         "hotel": $('#hotel' + index).val(),
         "airline": $('#airline' + index).val(),
-        "start_date": $('#start_date' + index).val(),
-        "end_date": $('#end_date' + index).val(),
+        "start_date": start_date_converted,
+        "end_date": end_date_converted,
         "vacationers": $('#vacationers' + index).val()
     };
 
@@ -252,17 +256,32 @@ function success_screen(index, response){
     $('.info-vacationers').attr('id', 'info-vacationers-' + index);
     $('.info-vacationers').removeClass('info-vacationers');
 
+    // Before we set informations, we need to convert timestamps into date, back again.
+    start_date_converted = new Date(response['start_date'] * 1000);
+    start_date_converted = zeroPad(start_date_converted.getDate(), 2) + '.' +
+                           zeroPad((start_date_converted.getMonth() + 1), 2) + '.' +
+                           zeroPad(start_date_converted.getFullYear(), 4);
+    end_date_converted = new Date(response['end_date'] * 1000);
+    end_date_converted = zeroPad(end_date_converted.getDate(), 2) + '.' +
+                           zeroPad((end_date_converted.getMonth() + 1), 2) + '.' +
+                           zeroPad(end_date_converted.getFullYear(), 4);
+
     // Set informations based on response.
     $('#info-name-' + index).text(response['name']);
     $('#info-mail-' + index).text(response['mail']);
     $('#info-hotel-' + index).text(response['hotel']);
     $('#info-airline-' + index).text(response['airline']);
-    $('#info-start-' + index).text(response['start_date']);
-    $('#info-end-' + index).text(response['end_date']);
+    $('#info-start-' + index).text(start_date_converted);
+    $('#info-end-' + index).text(end_date_converted);
     $('#info-vacationers-' + index).text(response['vacationers']);
 
     // Then, we will fade it in...
     $('.customer-div-' + index).fadeIn("slow");
+}
+
+// A useful function...
+function zeroPad(num, places) {
+    return String(num).padStart(places, '0')
 }
 
 function alternate_screen(index, response){
