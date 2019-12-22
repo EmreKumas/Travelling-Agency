@@ -20,7 +20,71 @@ key_value_normal_ending = "\r\n"
 
 
 # ########################################### FUNCTIONS
-def contact_hotel(meaningful_data, reserve):
+def check_hotels(meaningful_data):
+    # Lets get all hotel data and find the hotel port we want to communicate first...
+    hotels = get_hotels()
+    target_port = None
+    hotel_reserved_status = None
+
+    # If hotel data is actually an array, it means we have proposed some alternatives. So we need to check it...
+    if isinstance(meaningful_data['hotel'], str):
+        for hotel in hotels:
+            if meaningful_data['hotel'] == hotel[0]:
+                target_port = int(hotel[1])
+
+        if target_port is None:
+            print("This hotel does not exists anymore...")
+            return None
+
+        # Then, we contact with this hotel to check if there is enough place...
+        hotel_reserved_status = contact_hotel_with_port(meaningful_data, target_port, "false")
+    else:
+        # Means it is an array, we will check if the customer accepted the alternate offer...
+        if meaningful_data['accept_refuse'] == 'accept':
+            # We will reserve the hotel at last location in hotel list...
+            for hotel in hotels:
+                if meaningful_data['hotel'][-1] == hotel[0]:
+                    target_port = int(hotel[1])
+
+            if target_port is None:
+                print("This hotel does not exists anymore...")
+                return None
+
+            # Then, we contact with this hotel to check if there is enough place...
+            hotel_reserved_status = contact_hotel_with_port(meaningful_data, target_port, "false")
+
+    # Reserve places in the hotel if there is enough place...
+    if hotel_reserved_status == 'enough_place':
+        hotel_reserved_status = contact_hotel_with_port(meaningful_data, target_port, "true")
+    # Else, we need to check other hotels to be able to offer alternatives...
+    else:
+        # If hotel data is an array, we copy all elements...
+        if isinstance(meaningful_data['hotel'], str):
+            visited_hotels = [meaningful_data['hotel']]
+        else:
+            visited_hotels = meaningful_data['hotel'].copy()
+        for hotel in hotels:
+            # If we have not visited, this hotel yet...
+            if hotel[0] not in visited_hotels:
+                target_port = int(hotel[1])
+
+                # Then, we contact with this hotel to check if there is enough place...
+                hotel_reserved_status = contact_hotel_with_port(meaningful_data, target_port, "false")
+
+                # If this hotel has enough place, we will ask the customer...
+                if hotel_reserved_status == 'enough_place' and isinstance(meaningful_data['hotel'], str):
+                    meaningful_data['hotel'] = [meaningful_data['hotel'], hotel[0]]
+                    break
+                elif hotel_reserved_status == 'enough_place':
+                    new_list = meaningful_data['hotel'].copy()
+                    new_list.append(hotel[0])
+                    meaningful_data['hotel'] = new_list.copy()
+                    break
+
+    return hotel_reserved_status
+
+
+def contact_hotel_with_port(meaningful_data, hotel_port, reserve):
 
     # Lets create our request message...
     body = create_body(meaningful_data, reserve)
@@ -30,21 +94,9 @@ def contact_hotel(meaningful_data, reserve):
         request += element
     request += body_ending
 
-    # Lets get all hotel data and find the hotel port we want to communicate...
-    hotels = get_hotels()
-    target_port = None
-
-    for hotel in hotels:
-        if meaningful_data['hotel'] == hotel[0]:
-            target_port = int(hotel[1])
-
-    if target_port is None:
-        print("This hotel does not exists anymore...")
-        return None
-
     # Now, we need to connect to the hotel socket and send our request...
     hotel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    response = send_data_to_socket(hotel_socket, target_port, request)
+    response = send_data_to_socket(hotel_socket, hotel_port, request)
 
     # Processing response...
     return process_data(response)
@@ -103,6 +155,8 @@ def create_response(meaningful_data, hotel_reserved_status):
 
     if hotel_reserved_status == 'reserved':
         meaningful_data['reserved'] = 'reserved'
+    elif hotel_reserved_status == 'enough_place':
+        meaningful_data['reserved'] = 'alternate'
     else:
         meaningful_data['reserved'] = 'no_reservation'
 
@@ -230,12 +284,8 @@ if __name__ == "__main__":
             # Set customer name...
             customer_name = meaningful_data['name']
 
-            # Check if there is enough place in the hotel...
-            hotel_reserved_status = contact_hotel(meaningful_data, "false")
-
-            # Reserve places in the hotel if there is enough place...
-            if hotel_reserved_status == 'enough_place':
-                hotel_reserved_status = contact_hotel(meaningful_data, "true")
+            # Check if there is enough place in hotels...
+            hotel_reserved_status = check_hotels(meaningful_data)
 
             # Create our response message back to the customer...
             response = create_response(meaningful_data, hotel_reserved_status)
