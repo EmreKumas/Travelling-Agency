@@ -30,18 +30,30 @@ def contact_hotel(meaningful_data, reserve):
         request += element
     request += body_ending
 
+    # Lets get all hotel data and find the hotel port we want to communicate...
+    hotels = get_hotels()
+    target_port = None
+
+    for hotel in hotels:
+        if meaningful_data['hotel'] == hotel[0]:
+            target_port = int(hotel[1])
+
+    if target_port is None:
+        print("This hotel does not exists anymore...")
+        return None
+
     # Now, we need to connect to the hotel socket and send our request...
     hotel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    response = send_data_to_socket(hotel_socket, request)
+    response = send_data_to_socket(hotel_socket, target_port, request)
 
     # Processing response...
     return process_data(response)
 
 
-def send_data_to_socket(target_socket, data):
+def send_data_to_socket(target_socket, target_port, data):
     response = ''
     try:
-        target_socket.connect((HOSTNAME, 4118))
+        target_socket.connect((HOSTNAME, target_port))
         target_socket.sendall(bytes(data, encoding="utf8"))
         response = target_socket.recv(4096).decode("utf8")
         target_socket.close()
@@ -89,10 +101,10 @@ def calculate_body_size(body):
 
 def create_response(meaningful_data, hotel_reserved_status):
 
-    if hotel_reserved_status == 'no_reservation':
-        meaningful_data['reserved'] = 'no_reservation'
-    else:
+    if hotel_reserved_status == 'reserved':
         meaningful_data['reserved'] = 'reserved'
+    else:
+        meaningful_data['reserved'] = 'no_reservation'
 
     return json.dumps(meaningful_data, ensure_ascii=False)
 
@@ -140,11 +152,9 @@ def create_connection():
 
 
 def send_hotel_names(connection):
-    # Connect to the database...
-    database = create_connection()
 
-    # Get all hotel names...
-    hotel_names = select_all_hotels(database)
+    # First, lets get all hotel names...
+    hotel_names = list(map(lambda x: x[0], get_hotels()))
 
     response = {'hotels': []}
 
@@ -157,11 +167,24 @@ def send_hotel_names(connection):
     connection.send(bytes(response, encoding="utf8"))
 
 
+def get_hotels():
+    # Connect to the database...
+    database = create_connection()
+
+    # Get all hotels...
+    hotels = select_all_hotels(database)
+
+    # And close the connection...
+    database.close()
+
+    return hotels
+
+
 def select_all_hotels(database):
     cursor = database.cursor()
 
     try:
-        query = "SELECT hotel_name FROM hotel;"
+        query = "SELECT hotel_name, hotel_port FROM hotel;"
         cursor.execute(query)
     except sqlite3.Error as e:
         print(e)
