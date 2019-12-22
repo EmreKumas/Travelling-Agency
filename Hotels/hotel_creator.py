@@ -1,6 +1,12 @@
 import re
 import os
+import json
 import sqlite3
+import socket
+
+
+AGENCY_HOSTNAME = "localhost"
+AGENCY_PORT = 80
 
 
 def create_python_file(file_name, port):
@@ -43,10 +49,10 @@ def format_hotel_name(hotel_name):
     new_hotel_name = re.sub("ç", 'c', new_hotel_name)
 
     # Determine python file name...
-    python_file_name = re.sub("\s+", "_", new_hotel_name.strip())  # Replace spaces with underscores
-    python_file_name = python_file_name.lower()  # Convert all characters to lower case
+    corrected_hotel_name = re.sub("\s+", "_", new_hotel_name.strip())  # Replace spaces with underscores
+    python_file_name = corrected_hotel_name.lower()  # Convert all characters to lower case
 
-    return python_file_name
+    return python_file_name, corrected_hotel_name
 
 
 def create_database_file(file_name, room_count):
@@ -105,6 +111,32 @@ def execute_query(database, query):
         print(e)
 
 
+def contact_agency(hotel_name, port):
+    agency_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Create the data to send...
+    data_to_send = {'register': 'hotel', 'hotel_name': hotel_name.strip(), 'port': port}
+    data_to_send = json.dumps(data_to_send, ensure_ascii=False)
+
+    # Connect to the agency...
+    try:
+        agency_socket.connect((AGENCY_HOSTNAME, AGENCY_PORT))
+        agency_socket.sendall(bytes(data_to_send, encoding="utf8"))
+        response = agency_socket.recv(4096).decode("utf8")
+        agency_socket.close()
+
+        # Convert straight text into a dictionary...
+        response = json.loads(response)
+
+        if response['register'] == 'registered':
+            return True
+
+    except socket.error:
+        print("Couldn't connect to the target hotel!")
+
+    return False
+
+
 if __name__ == "__main__":
     print("Welcome to the hotel creator!")
     hotel_name = input("Enter hotel's name: ")
@@ -112,10 +144,21 @@ if __name__ == "__main__":
     port = int(input("Enter hotel's port: "))
 
     # Before sending hotel_name, we will change all its unicode characters into appropriate ones...
-    file_name = format_hotel_name(hotel_name)
+    file_name, corrected_hotel_name = format_hotel_name(hotel_name)
 
     create_python_file(file_name, port)
     create_database_file(file_name + ".db", room_count)
 
-    print("\nHotel created successfully!")
-    print("To run the server, just type: python " + file_name + ".py")
+    # After the hotel is created, we need to contact with the agency to add it into hotel list...
+    reserved_status = contact_agency(hotel_name.strip(), port)
+
+    if reserved_status:
+        # Means hotel created successfully and added to the hotel list in agency server...
+        print("\nHotel created successfully!")
+        print("To run the server, just type: python " + file_name + ".py")
+    else:
+        # We will delete created files...
+        if os.path.exists(file_name + ".py"):
+            os.remove(file_name + ".py")
+        if os.path.exists(file_name + ".db"):
+            os.remove(file_name + ".db")
