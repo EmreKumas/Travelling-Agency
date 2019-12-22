@@ -139,6 +139,37 @@ def create_connection():
     return connection
 
 
+def send_hotel_names(connection):
+    # Connect to the database...
+    database = create_connection()
+
+    # Get all hotel names...
+    hotel_names = select_all_hotels(database)
+
+    response = {'hotels': []}
+
+    for hotel in hotel_names:
+        response['hotels'].append(hotel)
+
+    # Send a response back to the customer...
+    response = json.dumps(response, ensure_ascii=False)
+
+    connection.send(bytes(response, encoding="utf8"))
+
+
+def select_all_hotels(database):
+    cursor = database.cursor()
+
+    try:
+        query = "SELECT hotel_name FROM hotel;"
+        cursor.execute(query)
+    except sqlite3.Error as e:
+        print(e)
+        return None
+
+    return cursor.fetchall()
+
+
 if __name__ == "__main__":
     # Setting up the connection...
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -168,6 +199,10 @@ if __name__ == "__main__":
                 if meaningful_data['register'] == 'hotel':
                     register_hotel(connection, meaningful_data)
                     break
+            elif 'hotel_names' in meaningful_data:
+                # Means customer wants to get all hotel names...
+                send_hotel_names(connection)
+                break
 
             # Set customer name...
             customer_name = meaningful_data['name']
