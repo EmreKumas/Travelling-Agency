@@ -3,7 +3,8 @@ import sqlite3
 
 # ########################################### GLOBAL VARIABLES
 HOSTNAME = "localhost"
-PORT = 9000
+PORT = ENTER_PORT
+DATABASE = "ENTER_DATABASE"
 SELECT_QUERY = "SELECT room.room_id, room.room_number, reservation.start_date, reservation.end_date, " \
                "reservation.owner_name, reservation.owner_mail FROM room " \
                "LEFT JOIN room_reservation ON room.room_id = room_reservation.room_id " \
@@ -111,7 +112,7 @@ def check_available_room(db_data, reserved_rooms):
 def create_db_connection():
     database = None
     try:
-        database = sqlite3.connect("hilton.db")
+        database = sqlite3.connect(DATABASE)
     except sqlite3.Error:
         print("Couldn't connect to database!")
 
