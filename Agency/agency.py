@@ -1,5 +1,6 @@
 import socket
 import json
+import sqlite3
 
 
 # ########################################### CONSTANTS
@@ -40,7 +41,7 @@ def contact_hotel(meaningful_data, reserve):
 def send_data_to_socket(target_socket, data):
     response = ''
     try:
-        target_socket.connect((HOSTNAME, 9000))
+        target_socket.connect((HOSTNAME, 4118))
         target_socket.sendall(bytes(data, encoding="utf8"))
         response = target_socket.recv(4096).decode("utf8")
         target_socket.close()
@@ -96,6 +97,48 @@ def create_response(meaningful_data, hotel_reserved_status):
     return json.dumps(meaningful_data, ensure_ascii=False)
 
 
+def register_hotel(connection, meaningful_data):
+
+    # Connect to the database...
+    database = create_connection()
+
+    # We insert the hotel into the database...
+    insert_hotel = ("INSERT INTO hotel(hotel_name, hotel_port) VALUES('{}', {})"
+                    .format(meaningful_data['hotel_name'], int(meaningful_data['port'])))
+
+    # We also need to send back a response to to hotel creator...
+    response = {}
+
+    try:
+        cursor = database.cursor()
+        cursor.execute(insert_hotel)
+
+        # Lastly, commit and close the database...
+        database.commit()
+        database.close()
+        response['register'] = 'registered'
+
+    except sqlite3.Error as e:
+        print(e)
+        response['register'] = 'error'
+
+    # Send a response back to the hotel creator...
+    response = json.dumps(response, ensure_ascii=False)
+
+    connection.send(bytes(response, encoding="utf8"))
+
+
+def create_connection():
+
+    connection = None
+    try:
+        connection = sqlite3.connect('hotels.db')
+    except sqlite3.Error as e:
+        print(e)
+
+    return connection
+
+
 if __name__ == "__main__":
     # Setting up the connection...
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -119,6 +162,13 @@ if __name__ == "__main__":
             # Convert straight text into a dictionary...
             meaningful_data = json.loads(customer_data)
 
+            # We need to determine whom the connection belongs to...
+            if 'register' in meaningful_data:
+                # We check if this is a hotel register...
+                if meaningful_data['register'] == 'hotel':
+                    register_hotel(connection, meaningful_data)
+                    break
+
             # Set customer name...
             customer_name = meaningful_data['name']
 
@@ -137,4 +187,3 @@ if __name__ == "__main__":
 
         # Close the connection...
         connection.close()
-        print("Customer with the name '" + customer_name + "' is disconnected!")
