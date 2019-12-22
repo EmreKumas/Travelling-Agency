@@ -16,7 +16,7 @@ var backend_responses = {};
 // HTML holders...
 var centerized_div = '<div class="centerized" style="position: relative; top: 50%; transform: translateY(-50%);"></div>';
 
-var loading_image_html = '<img src="assets/img/ajax-loader.gif">';
+var loading_image_html = '<img src="/img/ajax-loader.gif">';
 var loading_text_html = '<h6 class="mt-3 text-monospace">Please wait while we check.</h6>';
 
 var no_response_heading = '<h2 class="text-uppercase">no response...</h2>';

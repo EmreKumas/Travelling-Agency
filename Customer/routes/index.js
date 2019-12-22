@@ -4,6 +4,11 @@ const Customer = require('../socket');
 const router = express.Router();
 
 // All GET and POST requests are handled here...
+router.get('/', (req, res) => {
+
+    res.render('index');
+});
+
 router.post('/', (req, res) => {
 
     var customer = new Customer();
