@@ -129,6 +129,8 @@ function post_form(event){
         bring_loading(index);
     });
 
+    jQuery.ajaxSettings.traditional = true;
+
     // Send form informations to back-end.
     $.post('/', data, function(resp) {
         
@@ -269,7 +271,7 @@ function success_screen(index, response){
     // Set informations based on response.
     $('#info-name-' + index).text(response['name']);
     $('#info-mail-' + index).text(response['mail']);
-    $('#info-hotel-' + index).text(response['hotel']);
+    $('#info-hotel-' + index).text(response['hotel'][(response['hotel'].length) - 1]);
     $('#info-airline-' + index).text(response['airline']);
     $('#info-start-' + index).text(start_date_converted);
     $('#info-end-' + index).text(end_date_converted);
@@ -304,7 +306,7 @@ function alternate_screen(index, response){
     $(div_id + ' .alternate-refuse').attr('id', 'alternate-refuse-' + index);
 
     // Set informations based on response.
-    $('#alternate-hotel-' + index).text(response['hotel']);
+    $('#alternate-hotel-' + index).text(response['hotel'][(response['hotel'].length) - 1]);
     $('#alternate-airline-' + index).text(response['airline']);
 
     // Then, we will fade it in...
@@ -335,10 +337,11 @@ function accept_alternative(){
     var data = backend_responses[key];
     data['accept_refuse'] = 'accept';
 
+    jQuery.ajaxSettings.traditional = true;
+
     // Send form informations to back-end.
     $.post('/', data, function(resp) {
         
-        var key = 'response' + index;
         backend_responses[key] = resp;
     });
 }
@@ -354,6 +357,8 @@ function refuse_alternative(){
 
     var data = backend_responses[key];
     data['accept_refuse'] = 'refuse';
+
+    jQuery.ajaxSettings.traditional = true;
 
     // Send form informations to back-end.
     $.post('/', data, function(resp) {
