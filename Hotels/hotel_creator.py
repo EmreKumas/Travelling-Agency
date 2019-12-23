@@ -115,7 +115,7 @@ def contact_agency(hotel_name, port):
     agency_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Create the data to send...
-    data_to_send = {'register': 'hotel', 'hotel_name': hotel_name.strip(), 'port': port}
+    data_to_send = {'register': 'hotel', 'hotel_name': hotel_name, 'port': port}
     data_to_send = json.dumps(data_to_send, ensure_ascii=False)
 
     # Connect to the agency...
@@ -132,7 +132,7 @@ def contact_agency(hotel_name, port):
             return True
 
     except socket.error:
-        print("Couldn't connect to the target hotel!")
+        print("Couldn't connect to the agency!")
 
     return False
 
