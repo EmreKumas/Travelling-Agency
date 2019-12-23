@@ -163,21 +163,27 @@ def create_response(meaningful_data, hotel_reserved_status):
     return json.dumps(meaningful_data, ensure_ascii=False)
 
 
-def register_hotel(connection, meaningful_data):
+def register_hotel_airline(connection, meaningful_data, table_name, name_column, port_column):
 
     # Connect to the database...
-    database = create_connection()
+    database = create_connection(table_name + "s.db")
 
-    # We insert the hotel into the database...
-    insert_hotel = ("INSERT INTO hotel(hotel_name, hotel_port) VALUES('{}', {})"
-                    .format(meaningful_data['hotel_name'], int(meaningful_data['port'])))
+    if table_name == 'hotel':
+        hotel_airline_name = meaningful_data['hotel_name']
+    else:
+        hotel_airline_name = meaningful_data['airline_name']
 
-    # We also need to send back a response to to hotel creator...
+    # We insert the hotel_airline into the database...
+    insert_hotel_airline = ("INSERT INTO {}({}, {}) VALUES('{}', {})"
+                            .format(table_name, name_column, port_column,
+                                    hotel_airline_name, int(meaningful_data['port'])))
+
+    # We also need to send back a response to to creator...
     response = {}
 
     try:
         cursor = database.cursor()
-        cursor.execute(insert_hotel)
+        cursor.execute(insert_hotel_airline)
 
         # Lastly, commit and close the database...
         database.commit()
@@ -188,17 +194,17 @@ def register_hotel(connection, meaningful_data):
         print(e)
         response['register'] = 'error'
 
-    # Send a response back to the hotel creator...
+    # Send a response back to the creator...
     response = json.dumps(response, ensure_ascii=False)
 
     connection.send(bytes(response, encoding="utf8"))
 
 
-def create_connection():
+def create_connection(db_name):
 
     connection = None
     try:
-        connection = sqlite3.connect('hotels.db')
+        connection = sqlite3.connect(db_name)
     except sqlite3.Error as e:
         print(e)
 
@@ -223,7 +229,7 @@ def send_hotel_names(connection):
 
 def get_hotels():
     # Connect to the database...
-    database = create_connection()
+    database = create_connection('hotels.db')
 
     # Get all hotels...
     hotels = select_all_hotels(database)
@@ -274,8 +280,12 @@ if __name__ == "__main__":
             if 'register' in meaningful_data:
                 # We check if this is a hotel register...
                 if meaningful_data['register'] == 'hotel':
-                    register_hotel(connection, meaningful_data)
+                    register_hotel_airline(connection, meaningful_data, 'hotel', 'hotel_name', 'hotel_port')
                     break
+                else:
+                    register_hotel_airline(connection, meaningful_data, 'airline', 'airline_name', 'airline_port')
+                    break
+
             elif 'hotel_names' in meaningful_data:
                 # Means customer wants to get all hotel names...
                 send_hotel_names(connection)
