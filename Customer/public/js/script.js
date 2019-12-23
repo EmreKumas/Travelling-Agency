@@ -271,8 +271,19 @@ function success_screen(index, response){
     // Set informations based on response.
     $('#info-name-' + index).text(response['name']);
     $('#info-mail-' + index).text(response['mail']);
-    $('#info-hotel-' + index).text(response['hotel'][(response['hotel'].length) - 1]);
-    $('#info-airline-' + index).text(response['airline']);
+
+
+    // Set informations based on response.
+    if(Array.isArray(response['hotel']))
+        $('#info-hotel-' + index).text(response['hotel'][(response['hotel'].length) - 1]);
+    else
+        $('#info-hotel-' + index).text(response['hotel']);
+
+    if(Array.isArray(response['airline']))
+        $('#info-airline-' + index).text(response['airline'][(response['airline'].length) - 1]);
+    else
+        $('#info-airline-' + index).text(response['airline']);    
+    
     $('#info-start-' + index).text(start_date_converted);
     $('#info-end-' + index).text(end_date_converted);
     $('#info-vacationers-' + index).text(response['vacationers']);
@@ -306,8 +317,15 @@ function alternate_screen(index, response){
     $(div_id + ' .alternate-refuse').attr('id', 'alternate-refuse-' + index);
 
     // Set informations based on response.
-    $('#alternate-hotel-' + index).text(response['hotel'][(response['hotel'].length) - 1]);
-    $('#alternate-airline-' + index).text(response['airline']);
+    if(Array.isArray(response['hotel']))
+        $('#alternate-hotel-' + index).text(response['hotel'][(response['hotel'].length) - 1]);
+    else
+        $('#alternate-hotel-' + index).text(response['hotel']);
+
+    if(Array.isArray(response['airline']))
+        $('#alternate-airline-' + index).text(response['airline'][(response['airline'].length) - 1]);
+    else
+        $('#alternate-airline-' + index).text(response['airline']);
 
     // Then, we will fade it in...
     $('.customer-div-' + index).fadeIn("slow");
