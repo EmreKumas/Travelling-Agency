@@ -60,7 +60,7 @@ def check_hotels_airlines(meaningful_data, hotel_or_airline):
             reserved_status = contact_with_port(meaningful_data, target_port, "false")
 
     # If there is not enough place, we need to check others to be able to offer alternatives...
-    if reserved_status != 'enough_place':
+    if reserved_status is None or reserved_status == 'no_reservation':
         # If data is an array, we copy all elements...
         if isinstance(request_list, str):
             visited_places = [request_list]
@@ -84,12 +84,15 @@ def check_hotels_airlines(meaningful_data, hotel_or_airline):
                     new_list.append(name_and_port[0])
                     request_list = new_list.copy()
                     break
-    else:
+    elif reserved_status is not None:
         if isinstance(request_list, str):
             meaningful_data[hotel_or_airline] = request_list
         else:
             meaningful_data[hotel_or_airline] = request_list.copy()
         return [reserved_status, target_port, None]
+
+    if reserved_status is None:
+        return [None, None, None]
 
     # If the code reaches here, it means we propose an alternative hotel to the customer...
     if isinstance(request_list, str):
