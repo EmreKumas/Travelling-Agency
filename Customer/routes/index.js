@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/', (req, res) => {
 
     // Get all hotel names by connecting to the agency...
-    var request = {'hotel_names': true};
+    var request = {'get_hotels_airlines': true};
 
     var customer = new Customer();
     
