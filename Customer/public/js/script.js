@@ -44,6 +44,11 @@ function ready_variables(){
 
     // Set div_height.
     div_height = $('.customer-div-1').innerHeight();
+
+    // Set date fields min-date to today's date.
+    var today_date = new Date().toISOString().split("T")[0];;
+    $('#start_date1').prop("min", today_date);
+    $('#end_date1').prop("min", today_date);
 }
 
 function insert_customer(){
@@ -63,6 +68,13 @@ function insert_customer(){
     new_customer = new_customer.replace('id="submit1"', 'id="submit' + customer_count + '"'); // Submit button
     
     $(".add-here").html(new_customer);
+
+    // Set date fields min-date to today's date.
+    var today_date = new Date().toISOString().split("T")[0];;
+    var start_date = '.add-here ' + '#start_date' + customer_count;
+    var end_date = '.add-here ' + '#end_date' + customer_count;
+    $(start_date).prop("min", today_date);
+    $(end_date).prop("min", today_date);
     
     // After adding html, we will add customer-div class and delete add-here class.
     $(".add-here").addClass("customer-div-" + customer_count);
@@ -106,9 +118,38 @@ function post_form(event){
        And, then we will delete the customer keyword, so only the number will be left. */
     var index = parseInt(this.id.replace("submit", ""));
 
+    // Check if required fields are completed...
+    var start_date = '';
+    var end_date = '';
+    alert_message = '';
+
+    if($('#name' + index).val() == '')
+        alert_message += 'Name field should not be empty!\n';
+    if($('#mail' + index).val() == '')
+        alert_message += 'Mail field should not be empty!\n';
+    if($('#start_date' + index).val() == ''){
+        alert_message += 'Start Date field should not be empty!\n';
+        start_date = 'Empty';
+    }
+    if($('#end_date' + index).val() == ''){
+        alert_message += 'End Date should not be empty!\n';
+        end_date = 'Empty';
+    }
+
     // Before posting form, we will convert dates into a number to be able to evaluate easier...
-    var start_date_converted = (new Date($('#start_date' + index).val())).getTime() / 1000;
-    var end_date_converted = (new Date($('#end_date' + index).val())).getTime() / 1000;
+    if(start_date !== 'Empty')
+        start_date = (new Date($('#start_date' + index).val())).getTime() / 1000;
+    if(end_date !== 'Empty')
+        end_date = (new Date($('#end_date' + index).val())).getTime() / 1000;
+
+    // If start date is greater than the end date, alert...
+    if((start_date != '' && end_date != '') && start_date > end_date)
+        alert_message += 'Start date cannot be greater than end date!\n';
+    
+    if(alert_message != ''){
+        alert(alert_message);
+        return;
+    }
 
     // Getting form values.
     var data = {
@@ -116,8 +157,8 @@ function post_form(event){
         "mail": $('#mail' + index).val(),
         "hotel": $('#hotel' + index).val(),
         "airline": $('#airline' + index).val(),
-        "start_date": start_date_converted,
-        "end_date": end_date_converted,
+        "start_date": start_date,
+        "end_date": end_date,
         "vacationers": $('#vacationers' + index).val()
     };
 
