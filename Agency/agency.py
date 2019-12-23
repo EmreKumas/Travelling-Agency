@@ -22,7 +22,7 @@ key_value_normal_ending = "\r\n"
 # ########################################### FUNCTIONS
 def check_hotels(meaningful_data):
     # Lets get all hotel data and find the hotel port we want to communicate first...
-    hotels = get_hotels()
+    hotels, _ = get_hotels_airlines()
     target_port = None
     hotel_reserved_status = None
 
@@ -211,15 +211,14 @@ def create_connection(db_name):
     return connection
 
 
-def send_hotel_names(connection):
+def send_hotel_airline_names(connection):
 
-    # First, lets get all hotel names...
-    hotel_names = list(map(lambda x: x[0], get_hotels()))
+    # First, lets get all hotel and airline names...
+    hotel_names, airline_names = get_hotels_airlines()
+    hotel_names = list(map(lambda x: x[0], hotel_names))
+    airline_names = list(map(lambda x: x[0], airline_names))
 
-    response = {'hotels': []}
-
-    for hotel in hotel_names:
-        response['hotels'].append(hotel)
+    response = {'hotels': hotel_names.copy(), 'airlines': airline_names.copy()}
 
     # Send a response back to the customer...
     response = json.dumps(response, ensure_ascii=False)
@@ -227,24 +226,33 @@ def send_hotel_names(connection):
     connection.send(bytes(response, encoding="utf8"))
 
 
-def get_hotels():
+def get_hotels_airlines():
     # Connect to the database...
     database = create_connection('hotels.db')
 
     # Get all hotels...
-    hotels = select_all_hotels(database)
+    hotels = select_all_hotels_airlines(database, 'hotel', 'hotel_name', 'hotel_port')
 
     # And close the connection...
     database.close()
 
-    return hotels
+    # Connect to the database...
+    database = create_connection('airlines.db')
+
+    # Get all airlines...
+    airlines = select_all_hotels_airlines(database, 'airline', 'airline_name', 'airline_port')
+
+    # And close the connection...
+    database.close()
+
+    return hotels, airlines
 
 
-def select_all_hotels(database):
+def select_all_hotels_airlines(database, table_name, name_column, port_column):
     cursor = database.cursor()
 
     try:
-        query = "SELECT hotel_name, hotel_port FROM hotel;"
+        query = "SELECT {}, {} FROM {};".format(name_column, port_column, table_name)
         cursor.execute(query)
     except sqlite3.Error as e:
         print(e)
@@ -286,9 +294,9 @@ if __name__ == "__main__":
                     register_hotel_airline(connection, meaningful_data, 'airline', 'airline_name', 'airline_port')
                     break
 
-            elif 'hotel_names' in meaningful_data:
-                # Means customer wants to get all hotel names...
-                send_hotel_names(connection)
+            elif 'get_hotels_airlines' in meaningful_data:
+                # Means customer wants to get all hotel and airline names...
+                send_hotel_airline_names(connection)
                 break
 
             # Set customer name...
