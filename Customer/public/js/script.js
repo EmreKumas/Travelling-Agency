@@ -127,6 +127,11 @@ function post_form(event){
         alert_message += 'Name field should not be empty!\n';
     if($('#mail' + index).val() == '')
         alert_message += 'Mail field should not be empty!\n';
+    else{
+        var re = /\S+@\S+\.\S+/;
+        if(!re.test($('#mail' + index).val()))
+            alert_message += 'Mail field is not in the correct format!\n';
+    }
     if($('#start_date' + index).val() == ''){
         alert_message += 'Start Date field should not be empty!\n';
         start_date = 'Empty';
